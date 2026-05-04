@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Jimpitan</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background: linear-gradient(135deg,#0f172a,#020617);
+  color:white;
+}
+
+.container {
+  padding:20px;
+}
+
+h1 {
+  text-align:center;
+}
+
+.card {
+  background:#020617;
+  padding:20px;
+  border-radius:15px;
+  margin-top:15px;
+  box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+
+.big {
+  font-size:28px;
+  font-weight:bold;
+}
+
+.refresh {
+  margin-top:20px;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>📊 Dashboard RT</h1>
+
+  <div class="card">
+    <div>Total Scan Hari Ini</div>
+    <div id="total" class="big">...</div>
+  </div>
+
+  <div class="card">
+    <div>Total Uang Hari Ini</div>
+    <div id="uang" class="big">...</div>
+  </div>
+
+  <div class="refresh">
+    <button onclick="loadData()">🔄 Refresh</button>
+  </div>
+</div>
+
+<script>
+const URL = "https://script.google.com/macros/s/AKfycbyWyFVsrAHBxYhZg7h5BpnIcAxceyyLWLhwGsYmncTWQzlrfCZPDc4HzxlR7eL9AAOb/exec";
+
+function loadData(){
+  fetch(URL + "?mode=dashboard")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("total").innerHTML = data.total;
+    document.getElementById("uang").innerHTML = "Rp " + data.uang;
+  })
+  .catch(() => {
+    document.getElementById("total").innerHTML = "Error";
+  });
+}
+
+// auto load
+loadData();
+</script>
+
+</body>
+</html>
