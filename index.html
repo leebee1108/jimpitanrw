@@ -144,6 +144,28 @@ if (!rumah) {
       console.log("Gagal kirim");
     });
 }
+  setTimeout(() => {
+  window.location.href = "dashboard.html";
+}, 1500);
+
+  <button onclick="aktifkanAudio()">🔊 Aktifkan Suara</button>
+let audioReady = false;
+const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+
+function aktifkanAudio(){
+  audio.play().then(()=>{
+    audio.pause();
+    audio.currentTime = 0;
+    audioReady = true;
+  });
+}
+
+function bunyi(){
+  if(audioReady){
+    audio.currentTime = 0;
+    audio.play();
+  }
+}
 </script>
 </body>
 </html>
