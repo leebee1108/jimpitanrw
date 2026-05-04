@@ -62,124 +62,61 @@ body {
 <script>
 const URL = "https://script.google.com/macros/s/AKfycbyWyFVsrAHBxYhZg7h5BpnIcAxceyyLWLhwGsYmncTWQzlrfCZPDc4HzxlR7eL9AAOb/exec";
 
-let lock = false;
 let html5QrCode = new Html5Qrcode("reader");
-let currentCameraIndex = 0;
-let cameras = [];
-let flashOn = false;
+let lock = false;
 
-// 🔊 suara
-function bunyi(){
-  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
-  audio.play();
+// status helper
+function status(text){
+  document.getElementById("status").innerHTML = text;
 }
 
-// 📳 getar
-function getar(){
-  if (navigator.vibrate) navigator.vibrate(200);
-}
-
-// 🚀 kirim data
+// kirim data
 function kirim(rumah){
   if(lock) return;
   lock = true;
 
-  document.getElementById("rumah").innerHTML = "🏠 " + rumah;
-  document.getElementById("status").innerHTML = "⏳ Mengirim...";
+  status("⏳ Mengirim...");
 
   fetch(URL + "?rumah=" + encodeURIComponent(rumah))
   .then(res => res.text())
   .then(res => {
-
-    if(res === "NORMAL"){
-      status("✅ Berhasil","success");
-      bunyi(); getar();
-
-    } else if(res === "DOUBLE HARI INI"){
-      status("⚠️ Sudah diambil","warning");
-      getar();
-
-    } else {
-      status("ℹ️ " + res);
-    }
-
-    setTimeout(() => {
-      lock = false;
-      status("Menunggu QR...");
-    }, 3000);
-
+    status("✅ " + res);
+    setTimeout(()=> lock=false, 2000);
   })
-  .catch(() => {
-    status("❌ Gagal koneksi","error");
-    lock = false;
+  .catch(()=> {
+    status("❌ Gagal");
+    lock=false;
   });
 }
 
-// 🎨 status helper
-function status(text, cls=""){
-  let el = document.getElementById("status");
-  el.innerHTML = text;
-  el.className = "status " + cls;
-}
-
-// 🚀 START CAMERA
-function startCamera(id){
+// 🔥 START PALING AMAN
+function startScanner(cameraId){
   html5QrCode.start(
-    id,
+    cameraId,
     { fps: 10, qrbox: 250 },
     decodedText => kirim(decodedText)
-  );
-}
-
-// 🔄 SWITCH CAMERA
-function switchCamera(){
-  if(cameras.length < 2) return alert("Kamera cuma 1 😅");
-
-  html5QrCode.stop().then(() => {
-    currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
-    startCamera(cameras[currentCameraIndex].id);
+  ).then(() => {
+    status("📷 Kamera aktif");
+  }).catch(err => {
+    status("❌ Gagal start kamera");
+    console.log(err);
   });
-}
-
-// 🔦 TOGGLE FLASH
-function toggleFlash(){
-  try {
-    let track = html5QrCode.getRunningTrack();
-    if (!track) return alert("Kamera belum siap");
-
-    let capabilities = track.getCapabilities();
-
-    if (!capabilities.torch) {
-      return alert("HP tidak support senter 😢");
-    }
-
-    flashOn = !flashOn;
-
-    track.applyConstraints({
-      advanced: [{ torch: flashOn }]
-    });
-
-  } catch(e){
-    alert("Senter error");
-  }
 }
 
 // INIT
-<script>
 Html5Qrcode.getCameras().then(devices => {
-  cameras = devices;
 
-  if (cameras.length) {
-
-    // 🔥 paksa kamera belakang (environment)
-    html5QrCode.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      decodedText => kirim(decodedText)
-    );
-
+  if(!devices.length){
+    status("❌ Tidak ada kamera");
+    return;
   }
+
+  // 🔥 pakai kamera belakang (biasanya terakhir)
+  let cameraId = devices[devices.length - 1].id;
+
+  startScanner(cameraId);
+
 }).catch(err => {
-  status("❌ Kamera tidak bisa diakses","error");
+  status("❌ Kamera tidak diizinkan");
 });
 </script>
