@@ -106,49 +106,7 @@ const status = document.getElementById("status");
 const rumahText = document.getElementById("rumah");
 const loader = document.getElementById("loader");
 
-// 🔊 preload audio (biar bisa bunyi di HP)
-const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
-
-function bunyi(){
-  audio.play().catch(()=>{});
-}
-
-function getar(){
-  if (navigator.vibrate) navigator.vibrate(200);
-}
-
-if (!rumah) {
-  loader.style.display = "none";
-  status.innerHTML = "❌ QR tidak valid";
-  status.className = "status error";
-
-} else {
-
-  rumahText.innerHTML = "🏠 " + rumah;
-
-  // ⚡ LANGSUNG FEEDBACK (BIAR CEPAT)
-  loader.style.display = "none";
-  status.innerHTML = "✅ Terscan";
-  status.className = "status success";
-
-  bunyi();
-  getar();
-
-  // 🚀 kirim di background (biar gak nunggu)
-  fetch(URL + "?rumah=" + encodeURIComponent(rumah))
-    .then(res => res.text())
-    .then(res => {
-      console.log("Server:", res);
-    })
-    .catch(() => {
-      console.log("Gagal kirim");
-    });
-}
-  setTimeout(() => {
-  window.location.href = "dashboard.html";
-}, 1500);
-
-  <button onclick="aktifkanAudio()">🔊 Aktifkan Suara</button>
+// 🔊 audio setup
 let audioReady = false;
 const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
 
@@ -165,6 +123,37 @@ function bunyi(){
     audio.currentTime = 0;
     audio.play();
   }
+}
+
+function getar(){
+  if (navigator.vibrate) navigator.vibrate(200);
+}
+
+// 🚨 VALIDASI
+if (!rumah) {
+  loader.style.display = "none";
+  status.innerHTML = "❌ QR tidak valid";
+  status.className = "status error";
+} else {
+
+  // ⚡ LANGSUNG SUKSES (tidak nunggu server)
+  rumahText.innerHTML = "🏠 " + rumah;
+  loader.style.display = "none";
+  status.innerHTML = "✅ Berhasil";
+  status.className = "status success";
+
+  bunyi();
+  getar();
+
+  // 🚀 KIRIM DI BELAKANG (TANPA NUNGGU)
+  fetch(URL + "?rumah=" + encodeURIComponent(rumah))
+    .then(() => {})
+    .catch(() => {});
+
+  // ⏱️ DELAY 1.5 DETIK → DASHBOARD
+  setTimeout(() => {
+    window.location.href = "dashboard.html";
+  }, 1500);
 }
 </script>
 </body>
