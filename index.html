@@ -48,17 +48,13 @@ function kirim() {
 
   fetch(URL + "?rumah=" + rumah)
     .then(res => res.text())
-    .then(res => {
-      if (res == "OK") {
-        document.getElementById("status").innerHTML = "✅ Berhasil";
-      } else {
-        document.getElementById("status").innerHTML = "⚠️ Double scan";
-      }
-    })
-    .catch(() => {
-      document.getElementById("status").innerHTML = "❌ Error";
-    });
-}
+.then(res => {
+  if (res == "DIAMBIL") {
+    document.getElementById("status").innerHTML = "✅ DIAMBIL";
+  } else {
+    document.getElementById("status").innerHTML = "⚠️ Sudah diambil hari ini";
+  }
+});
 
 kirim();
 </script>
