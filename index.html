@@ -1,69 +1,139 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Scan Jimpitan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jimpitan RT</title>
 
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      background: #0f172a;
-      color: white;
-    }
+<style>
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#0f172a,#1e293b);
+  color:white;
+  text-align:center;
+}
 
-    .card {
-      margin-top: 50px;
-      padding: 30px;
-    }
+.header {
+  padding:15px;
+  font-size:20px;
+  font-weight:bold;
+  background:#020617;
+  box-shadow:0 2px 10px rgba(0,0,0,0.5);
+}
 
-    .status {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-  </style>
+#reader {
+  margin:20px;
+  border-radius:15px;
+  overflow:hidden;
+}
+
+.status {
+  margin-top:15px;
+  font-size:20px;
+  font-weight:bold;
+}
+
+.success { color:#22c55e; }
+.warning { color:#facc15; }
+.error { color:#ef4444; }
+
+.card {
+  margin:20px;
+  padding:20px;
+  background:#020617;
+  border-radius:15px;
+  box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+</style>
 </head>
 
 <body>
 
+<div class="header">📱 JIMPITAN RT</div>
+
 <div class="card">
-  <h1>📱 SCAN JIMPITAN</h1>
-  <div id="rumah"></div>
-  <div class="status" id="status">Memproses...</div>
+  <div id="reader"></div>
+  <div id="rumah">Siap scan...</div>
+  <div class="status" id="status">Menunggu QR...</div>
 </div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
 const URL = "https://script.google.com/macros/s/AKfycbyWyFVsrAHBxYhZg7h5BpnIcAxceyyLWLhwGsYmncTWQzlrfCZPDc4HzxlR7eL9AAOb/exec";
 
-const params = new URLSearchParams(window.location.search);
-const rumah = params.get("rumah");
+let lock = false;
 
-const status = document.getElementById("status");
-const rumahText = document.getElementById("rumah");
+// 🔊 suara sukses
+function bunyi(){
+  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+  audio.play();
+}
 
-if (!rumah) {
-  status.innerHTML = "❌ QR tidak valid";
-} else {
-  rumahText.innerHTML = "🏠 " + rumah;
-  status.innerHTML = "⏳ Mengirim...";
+// 📳 getar HP
+function getar(){
+  if (navigator.vibrate) {
+    navigator.vibrate(200);
+  }
+}
+
+function kirim(rumah){
+  if(lock) return;
+  lock = true;
+
+  document.getElementById("rumah").innerHTML = "🏠 " + rumah;
+  document.getElementById("status").innerHTML = "⏳ Mengirim...";
 
   fetch(URL + "?rumah=" + encodeURIComponent(rumah))
-    .then(res => res.text())
-    .then(res => {
-      if (res === "NORMAL") {
-        status.innerHTML = "✅ Berhasil (Normal)";
-      } else if (res === "DOUBLE HARI INI") {
-        status.innerHTML = "⚠️ Sudah diambil hari ini";
-      } else {
-        status.innerHTML = "ℹ️ " + res;
-      }
-    })
-    .catch(() => {
-      status.innerHTML = "❌ Gagal koneksi";
-    });
-}
-</script>
+  .then(res => res.text())
+  .then(res => {
 
+    if(res === "NORMAL"){
+      document.getElementById("status").innerHTML = "✅ Berhasil";
+      document.getElementById("status").className = "status success";
+      bunyi();
+      getar();
+
+    } else if(res === "DOUBLE HARI INI"){
+      document.getElementById("status").innerHTML = "⚠️ Sudah diambil";
+      document.getElementById("status").className = "status warning";
+      getar();
+
+    } else {
+      document.getElementById("status").innerHTML = "ℹ️ " + res;
+    }
+
+    // ⏱️ cooldown biar gak double scan
+    setTimeout(() => {
+      lock = false;
+      document.getElementById("status").innerHTML = "Menunggu QR...";
+    }, 3000);
+
+  })
+  .catch(() => {
+    document.getElementById("status").innerHTML = "❌ Gagal koneksi";
+    document.getElementById("status").className = "status error";
+    lock = false;
+  });
+}
+
+// 🚀 START SCANNER
+const html5QrCode = new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(devices => {
+  if (devices && devices.length) {
+    html5QrCode.start(
+      devices[0].id,
+      { fps: 10, qrbox: 250 },
+      decodedText => {
+        kirim(decodedText);
+      }
+    );
+  }
+}).catch(err => {
+  document.getElementById("status").innerHTML = "❌ Kamera tidak bisa diakses";
+});
+</script>
 
 </body>
 </html>
