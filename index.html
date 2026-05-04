@@ -35,26 +35,31 @@
 <script>
 const URL = "https://script.google.com/macros/s/AKfycbyWyFVsrAHBxYhZg7h5BpnIcAxceyyLWLhwGsYmncTWQzlrfCZPDc4HzxlR7eL9AAOb/exec";
 
-<script>
-const URL = "PASTE_URL_APPS_SCRIPT_KAMU";
-
 const params = new URLSearchParams(window.location.search);
 const rumah = params.get("rumah");
 
-if (!rumah) {
-  document.getElementById("status").innerHTML = "❌ QR tidak valid";
-} else {
+const status = document.getElementById("status");
+const rumahText = document.getElementById("rumah");
 
-  document.getElementById("rumah").innerHTML = "🏠 " + rumah;
+if (!rumah) {
+  status.innerHTML = "❌ QR tidak valid";
+} else {
+  rumahText.innerHTML = "🏠 " + rumah;
+  status.innerHTML = "⏳ Mengirim...";
 
   fetch(URL + "?rumah=" + encodeURIComponent(rumah))
     .then(res => res.text())
     .then(res => {
-      if (res == "NORMAL") {
-        document.getElementById("status").innerHTML = "✅ Normal";
+      if (res === "NORMAL") {
+        status.innerHTML = "✅ Berhasil (Normal)";
+      } else if (res === "DOUBLE HARI INI") {
+        status.innerHTML = "⚠️ Sudah diambil hari ini";
       } else {
-        document.getElementById("status").innerHTML = "⚠️ Sudah diambil hari ini";
+        status.innerHTML = "ℹ️ " + res;
       }
+    })
+    .catch(() => {
+      status.innerHTML = "❌ Gagal koneksi";
     });
 }
 </script>
