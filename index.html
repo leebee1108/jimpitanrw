@@ -165,11 +165,19 @@ function toggleFlash(){
 }
 
 // INIT
+<script>
 Html5Qrcode.getCameras().then(devices => {
   cameras = devices;
 
-  if(cameras.length){
-    startCamera(cameras[0].id);
+  if (cameras.length) {
+
+    // 🔥 paksa kamera belakang (environment)
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      decodedText => kirim(decodedText)
+    );
+
   }
 }).catch(err => {
   status("❌ Kamera tidak bisa diakses","error");
