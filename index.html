@@ -91,15 +91,24 @@ function kirim(rumah){
 
 // 🔥 START PALING AMAN
 function startScanner(cameraId){
-  html5QrCode.start(
-    cameraId,
-    { fps: 10, qrbox: 250 },
-    decodedText => kirim(decodedText)
-  ).then(() => {
-    status("📷 Kamera aktif");
-  }).catch(err => {
-    status("❌ Gagal start kamera");
-    console.log(err);
+html5QrCode.start(
+  { facingMode: "environment" }, // 🔥 wajib
+{
+  fps: 20, // lebih cepat detect
+  qrbox: { width: 300, height: 300 },
+  aspectRatio: 1.0
+}
+   decodedText => {
+  kirim(decodedText);
+
+  html5QrCode.stop().then(() => {
+    setTimeout(() => {
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 20, qrbox: 300 },
+        decodedText => kirim(decodedText)
+      );
+    }, 1000);
   });
 }
 
