@@ -1,71 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scan Jimpitan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scan Jimpitan</title>
 
-<style>
-body {
-  margin:0;
-  font-family: Arial;
-  background:#0f172a;
-  color:white;
-  text-align:center;
-}
-.header {
-  padding:15px;
-  font-size:20px;
-  background:#1e293b;
-}
-#reader {
-  margin:20px;
-}
-.status {
-  margin-top:15px;
-}
-</style>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #0f172a;
+      color: white;
+    }
+
+    .card {
+      margin-top: 50px;
+      padding: 30px;
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="header">SCAN JIMPITAN</div>
-<div id="reader"></div>
-<div class="status" id="status">Siap scan...</div>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
+<div class="card">
+  <h1>📱 SCAN JIMPITAN</h1>
+  <div id="rumah"></div>
+  <div class="status" id="status">Memproses...</div>
+</div>
 
 <script>
 const URL = "https://script.google.com/macros/s/AKfycbyWyFVsrAHBxYhZg7h5BpnIcAxceyyLWLhwGsYmncTWQzlrfCZPDc4HzxlR7eL9AAOb/exec";
 
+const params = new URLSearchParams(window.location.search);
+const rumah = params.get("rumah");
+
+document.getElementById("rumah").innerHTML = "🏠 " + rumah;
+
 let lock = false;
 
-function kirim(rumah){
-  document.getElementById("status").innerHTML = "Mengirim...";
+function kirim() {
+  if (lock) return;
+  lock = true;
 
   fetch(URL + "?rumah=" + rumah)
-  .then(res => res.text())
-  .then(() => {
-    document.getElementById("status").innerHTML = "✔ Berhasil: " + rumah;
-
-    lock = true;
-    setTimeout(() => {
-      lock = false;
-      document.getElementById("status").innerHTML = "Siap scan...";
-    }, 2000);
-  });
+    .then(res => res.text())
+    .then(res => {
+      if (res == "OK") {
+        document.getElementById("status").innerHTML = "✅ Berhasil";
+      } else {
+        document.getElementById("status").innerHTML = "⚠️ Double scan";
+      }
+    })
+    .catch(() => {
+      document.getElementById("status").innerHTML = "❌ Error";
+    });
 }
 
-const html5QrCode = new Html5Qrcode("reader");
-
-html5QrCode.start(
-  { facingMode: "environment" },
-  { fps: 10, qrbox: 250 },
-  (decodedText) => {
-    if (!lock) {
-      kirim(decodedText);
-    }
-  }
-);
+kirim();
 </script>
 
 </body>
