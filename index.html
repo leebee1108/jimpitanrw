@@ -47,15 +47,14 @@ function kirim() {
   lock = true;
 
   fetch(URL + "?rumah=" + rumah)
-    .then(res => res.text())
+.then(res => res.text())
 .then(res => {
-  if (res == "DIAMBIL") {
-    document.getElementById("status").innerHTML = "✅ DIAMBIL";
+  if (res == "NORMAL") {
+    document.getElementById("status").innerHTML = "✅ Normal";
   } else {
     document.getElementById("status").innerHTML = "⚠️ Sudah diambil hari ini";
   }
 });
-
 kirim();
 </script>
 
