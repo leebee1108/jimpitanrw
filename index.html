@@ -35,26 +35,29 @@
 <script>
 const URL = "https://script.google.com/macros/s/AKfycbyWyFVsrAHBxYhZg7h5BpnIcAxceyyLWLhwGsYmncTWQzlrfCZPDc4HzxlR7eL9AAOb/exec";
 
+<script>
+const URL = "PASTE_URL_APPS_SCRIPT_KAMU";
+
 const params = new URLSearchParams(window.location.search);
 const rumah = params.get("rumah");
 
-document.getElementById("rumah").innerHTML = "🏠 " + rumah;
+if (!rumah) {
+  document.getElementById("status").innerHTML = "❌ QR tidak valid";
+} else {
 
-let lock = false;
+  document.getElementById("rumah").innerHTML = "🏠 " + rumah;
 
-function kirim() {
-  if (lock) return;
-  lock = true;
-
-  fetch(URL + "?rumah=" + rumah)
-.then(res => res.text())
-.then(res => {
-  if (res == "NORMAL") {
-    document.getElementById("status").innerHTML = "✅ Normal";
-  } else {
-    document.getElementById("status").innerHTML = "⚠️ Sudah diambil hari ini";
-  }
-});
+  fetch(URL + "?rumah=" + encodeURIComponent(rumah))
+    .then(res => res.text())
+    .then(res => {
+      if (res == "NORMAL") {
+        document.getElementById("status").innerHTML = "✅ Normal";
+      } else {
+        document.getElementById("status").innerHTML = "⚠️ Sudah diambil hari ini";
+      }
+    });
+}
+</script>
 kirim();
 </script>
 
