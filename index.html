@@ -99,18 +99,6 @@ h1 {
 <script>
 const URL = "https://script.google.com/macros/s/AKfycbyWyFVsrAHBxYhZg7h5BpnIcAxceyyLWLhwGsYmncTWQzlrfCZPDc4HzxlR7eL9AAOb/exec";
 
-// 🔊 suara
-function bunyi(){
-  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
-  audio.play();
-}
-
-// 📳 getar
-function getar(){
-  if (navigator.vibrate) navigator.vibrate(200);
-}
-
-// ambil parameter
 const params = new URLSearchParams(window.location.search);
 const rumah = params.get("rumah");
 
@@ -118,47 +106,44 @@ const status = document.getElementById("status");
 const rumahText = document.getElementById("rumah");
 const loader = document.getElementById("loader");
 
+// 🔊 preload audio (biar bisa bunyi di HP)
+const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+
+function bunyi(){
+  audio.play().catch(()=>{});
+}
+
+function getar(){
+  if (navigator.vibrate) navigator.vibrate(200);
+}
+
 if (!rumah) {
   loader.style.display = "none";
   status.innerHTML = "❌ QR tidak valid";
   status.className = "status error";
+
 } else {
 
   rumahText.innerHTML = "🏠 " + rumah;
-  status.innerHTML = "Mengirim...";
 
+  // ⚡ LANGSUNG FEEDBACK (BIAR CEPAT)
+  loader.style.display = "none";
+  status.innerHTML = "✅ Terscan";
+  status.className = "status success";
+
+  bunyi();
+  getar();
+
+  // 🚀 kirim di background (biar gak nunggu)
   fetch(URL + "?rumah=" + encodeURIComponent(rumah))
     .then(res => res.text())
     .then(res => {
-
-      loader.style.display = "none";
-
-      if (res === "NORMAL") {
-        status.innerHTML = "✅ Berhasil";
-        status.className = "status success";
-        bunyi(); getar();
-
-      } else if (res === "DOUBLE HARI INI") {
-        status.innerHTML = "⚠️ Sudah diambil";
-        status.className = "status warning";
-        getar();
-
-      } else if (res === "DOUBLE") {
-        status.innerHTML = "⚠️ Terlalu cepat";
-        status.className = "status warning";
-
-      } else {
-        status.innerHTML = res;
-      }
-
+      console.log("Server:", res);
     })
     .catch(() => {
-      loader.style.display = "none";
-      status.innerHTML = "❌ Gagal koneksi";
-      status.className = "status error";
+      console.log("Gagal kirim");
     });
 }
 </script>
-
 </body>
 </html>
