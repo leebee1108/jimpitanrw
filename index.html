@@ -63,20 +63,23 @@ body {
 const URL = "https://script.google.com/macros/s/AKfycbyWyFVsrAHBxYhZg7h5BpnIcAxceyyLWLhwGsYmncTWQzlrfCZPDc4HzxlR7eL9AAOb/exec";
 
 let lock = false;
+let html5QrCode = new Html5Qrcode("reader");
+let currentCameraIndex = 0;
+let cameras = [];
+let flashOn = false;
 
-// 🔊 suara sukses
+// 🔊 suara
 function bunyi(){
   const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
   audio.play();
 }
 
-// 📳 getar HP
+// 📳 getar
 function getar(){
-  if (navigator.vibrate) {
-    navigator.vibrate(200);
-  }
+  if (navigator.vibrate) navigator.vibrate(200);
 }
 
+// 🚀 kirim data
 function kirim(rumah){
   if(lock) return;
   lock = true;
@@ -89,61 +92,86 @@ function kirim(rumah){
   .then(res => {
 
     if(res === "NORMAL"){
-      document.getElementById("status").innerHTML = "✅ Berhasil";
-      document.getElementById("status").className = "status success";
-      bunyi();
-      getar();
+      status("✅ Berhasil","success");
+      bunyi(); getar();
 
     } else if(res === "DOUBLE HARI INI"){
-      document.getElementById("status").innerHTML = "⚠️ Sudah diambil";
-      document.getElementById("status").className = "status warning";
+      status("⚠️ Sudah diambil","warning");
       getar();
 
     } else {
-      document.getElementById("status").innerHTML = "ℹ️ " + res;
+      status("ℹ️ " + res);
     }
 
-    // ⏱️ cooldown biar gak double scan
     setTimeout(() => {
       lock = false;
-      document.getElementById("status").innerHTML = "Menunggu QR...";
+      status("Menunggu QR...");
     }, 3000);
 
   })
   .catch(() => {
-    document.getElementById("status").innerHTML = "❌ Gagal koneksi";
-    document.getElementById("status").className = "status error";
+    status("❌ Gagal koneksi","error");
     lock = false;
   });
 }
 
-// 🚀 START SCANNER
-const html5QrCode = new Html5Qrcode("reader");
+// 🎨 status helper
+function status(text, cls=""){
+  let el = document.getElementById("status");
+  el.innerHTML = text;
+  el.className = "status " + cls;
+}
 
-Html5Qrcode.getCameras().then(devices => {
-  if (devices && devices.length) {
-   Html5Qrcode.getCameras().then(devices => {
-
-  let backCamera = devices.find(d => 
-    d.label.toLowerCase().includes("back") ||
-    d.label.toLowerCase().includes("environment")
-  );
-
-  let cameraId = backCamera ? backCamera.id : devices[0].id;
-
+// 🚀 START CAMERA
+function startCamera(id){
   html5QrCode.start(
-    cameraId,
+    id,
     { fps: 10, qrbox: 250 },
-    decodedText => {
-      kirim(decodedText);
-    }
+    decodedText => kirim(decodedText)
   );
+}
 
-});
+// 🔄 SWITCH CAMERA
+function switchCamera(){
+  if(cameras.length < 2) return alert("Kamera cuma 1 😅");
+
+  html5QrCode.stop().then(() => {
+    currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+    startCamera(cameras[currentCameraIndex].id);
+  });
+}
+
+// 🔦 TOGGLE FLASH
+function toggleFlash(){
+  try {
+    let track = html5QrCode.getRunningTrack();
+    if (!track) return alert("Kamera belum siap");
+
+    let capabilities = track.getCapabilities();
+
+    if (!capabilities.torch) {
+      return alert("HP tidak support senter 😢");
+    }
+
+    flashOn = !flashOn;
+
+    track.applyConstraints({
+      advanced: [{ torch: flashOn }]
+    });
+
+  } catch(e){
+    alert("Senter error");
+  }
+}
+
+// INIT
+Html5Qrcode.getCameras().then(devices => {
+  cameras = devices;
+
+  if(cameras.length){
+    startCamera(cameras[0].id);
+  }
 }).catch(err => {
-  document.getElementById("status").innerHTML = "❌ Kamera tidak bisa diakses";
+  status("❌ Kamera tidak bisa diakses","error");
 });
 </script>
-
-</body>
-</html>
